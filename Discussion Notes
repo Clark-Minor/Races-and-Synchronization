@@ -1,0 +1,34 @@
+Midterm results by mid week next week.
+
+Gradescope?
+Breakdown for each question
+regrade requests on Gradescope (for midterm)
+
+Project 2A
+
+Threading
+
+rm -f lab2_add lab2_list lab2a-USER.tar.gz and *.o
+
+This is the hardest project of the quarter.
+
+generate graphs with gnuplot
+
+long long is your best friend
+
+please write 1-2 sentences for each of the questions. probably will still get points for trying
+
+what is volatile?
+tells the compiler don't optimize it
+
+Threads don't get out of order all the time. The chances of them getting out of order are very slim.
+
+gcc -o thread thread_example1.c -lpthread
+
+pthread_exit(NULL) is vital!!!!
+
+return
+
+Threads will always do what they're asked to do, but yielding will cut it short. It makes sense to count the num of threads
+
+No, it is not valid per-operation timings if we are using the --yield option.
