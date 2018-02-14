@@ -2,11 +2,7 @@
 //EMAIL: clarkminor@ucla.edu
 //ID: 104812434
 
-#include <getopt.h> //getopt_long()
-#include <pthread.h>
-#include <stdio.h> //fprintf(), perror()
-#include <stdlib.h> //atoi()
-#include <time.h> //clock_gettime()
+
 
 #define BILLION 1000000000L
 int num_threads = 1;
