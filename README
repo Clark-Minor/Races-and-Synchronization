@@ -9,3 +9,13 @@ Powers of 10 from 10 - 10,000
 10 100 1,000 10,000
 Powers of 2 from 1 - 32
 1 2 4 8 16 32
+
+appending a string to another string
+https://www.thinkage.ca/english/gcos/expl/c/lib/strcat.html
+
+
+add-yield tests
+threads
+1 2 4 8 12
+iterations
+10 20 40 80 100 1,000 10,000 100,000

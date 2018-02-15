@@ -2,19 +2,26 @@
 //EMAIL: clarkminor@ucla.edu
 //ID: 104812434
 
-
+#include <getopt.h> //getopt_long()
+#include <pthread.h>
+#include <stdio.h> //fprintf(), perror()
+#include <stdlib.h> //atoi()
+#include <time.h> //clock_gettime()
 
 #define BILLION 1000000000L
 int num_threads = 1;
 int num_iterations = 1;
+int opt_yield = 0;
+char * test_name = "add-none";
 
 
-void add(long long *pointer, long long value)
-{
-    //perror("add func reached");
-    long long sum = *pointer + value;
-    *pointer = sum;
-}
+int opt_yield;
+        void add(long long *pointer, long long value) {
+                long long sum = *pointer + value;
+                if (opt_yield)
+                        sched_yield();
+                *pointer = sum;
+        }
 
 void * thread_func(void * counter)
 {
@@ -40,23 +47,31 @@ int main(int argc, char ** argv)
      -takes a parameter for the number of iterations*/
     {"threads",    optional_argument, NULL, 't'},
     {"iterations", optional_argument, NULL, 'i'},
+    {"yield",      no_argument,       NULL, 'y'},
     {0,0,0,0}
   };
 
   int opt = 0;
-  while((opt = getopt_long(argc, argv, "t:i:", long_opts, NULL)) != -1)
+  while((opt = getopt_long(argc, argv, "t:i:y", long_opts, NULL)) != -1)
   {
     switch(opt)
 		{
 			case 't':
-				num_threads = atoi(optarg);
+        if (optarg)
+				    num_threads = atoi(optarg);
 				break;
 
 			case 'i':
-				num_iterations = atoi(optarg);
+        if(optarg)
+				    num_iterations = atoi(optarg);
 				break;
+
+      case 'y':
+        opt_yield = 1;
+        test_name = "add-yield-none";
+        break;
       default:
-        fprintf(stderr, "Usage: [ --threads=# --iterations=# ]");
+        fprintf(stderr, "Usage: [ --threads=# --iterations=# --yield ]");
 
     }
   }
@@ -98,7 +113,7 @@ int main(int argc, char ** argv)
   */
   long long time_elapsed = BILLION * (end.tv_sec - start.tv_sec) +  end.tv_nsec - start.tv_nsec;
 
-  char * test_name = "add-none";
+
 
   long long num_operations = num_threads * num_iterations * 2;
 
