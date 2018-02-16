@@ -22,3 +22,7 @@ iterations
 
 Spin Locks
 https://attractivechaos.wordpress.com/2011/10/06/multi-threaded-programming-efficiency-of-locking/
+
+while (__sync_lock_test_and_set(&lock, 1));
+  // critical section
+  __sync_lock_release(&lock);

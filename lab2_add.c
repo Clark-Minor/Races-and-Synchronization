@@ -15,6 +15,8 @@ int num_iterations = 1;
 int opt_yield = 0;
 int opt_sync_mutex = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+int opt_sync_spin_lock = 0;
+volatile int lock = 0;
 
 
 
@@ -37,6 +39,14 @@ void * thread_func(void * counter)
       add((long long *) counter, (long long)  1);
       add((long long *) counter, (long long) -1);
       pthread_mutex_unlock(&mutex);
+    }
+    if(opt_sync_spin_lock)
+    {
+      while (__sync_lock_test_and_set(&lock, 1)); //spin
+      //critical section
+      add((long long *) counter, (long long)  1);
+      add((long long *) counter, (long long) -1);
+      __sync_lock_release(&lock);
     }
     else
     {
@@ -84,8 +94,12 @@ int main(int argc, char ** argv)
         break;
 
       case 's':
-        if(optarg && *optarg == 'm')
+        if ( *optarg == 'm' )
           opt_sync_mutex = 1;
+        else if( *optarg == 's')
+        {
+          opt_sync_spin_lock = 1;
+        }
         else
         {
           fprintf(stderr, "Usage: --sync=[m]");
@@ -151,7 +165,11 @@ int main(int argc, char ** argv)
   {
     strcat(test_name, "-m");
   }
-  if(!(opt_yield | opt_sync_mutex))
+  if(opt_sync_spin_lock)
+  {
+    strcat(test_name, "-s");
+  }
+  if(!(opt_yield | opt_sync_mutex | opt_sync_spin_lock))
   {
     strcat(test_name, "-none");
   }
