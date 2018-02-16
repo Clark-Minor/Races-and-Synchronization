@@ -145,13 +145,13 @@ int main(int argc, char ** argv)
           opt_sync_compare_and_swap = 1;
         else
         {
-          fprintf(stderr, "Usage: --sync={m,s,c}\n");
+          fprintf(stderr, "Usage: --sync=[msc]\n");
           exit(1);
         }
         break;
 
       default:
-        fprintf(stderr, "Usage: [ --threads=# --iterations=# --yield --sync={m,s,c} ]\n");
+        fprintf(stderr, "Usage: [ --threads=# --iterations=# --yield --sync=[msc] ]\n");
         exit(1);
 
     }
