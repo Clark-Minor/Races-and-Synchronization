@@ -3,7 +3,7 @@
 //ID: 104812434
 
 #include <getopt.h> //getopt_long()
-#include <pthread.h>
+#include <pthread.h> //pthread_create(), pthread_join()
 #include <stdio.h> //fprintf(), perror()
 #include <stdlib.h> //atoi()
 #include <time.h> //clock_gettime()
@@ -17,6 +17,7 @@ int opt_sync_mutex = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int opt_sync_spin_lock = 0;
 volatile int lock = 0;
+int opt_sync_compare_and_swap;
 
 
 
@@ -28,29 +29,73 @@ void add(long long *pointer, long long value)
   *pointer = sum;
 }
 
+void add_compare_and_swap(long long* ptr, long long val)
+{
+  long long prev;
+  long long sum;
+  do {
+    prev = *ptr;
+    sum = prev + val;
+    if(opt_yield)
+      sched_yield();
+  } while (__sync_val_compare_and_swap(ptr, prev, sum) != prev);
+}
+
 void * thread_func(void * counter)
 {
   int i=0;
+  /*add +1 with different synchronization options*/
   while(i < num_iterations)
   {
     if(opt_sync_mutex)
     {
       pthread_mutex_lock(&mutex);
       add((long long *) counter, (long long)  1);
-      add((long long *) counter, (long long) -1);
       pthread_mutex_unlock(&mutex);
     }
-    if(opt_sync_spin_lock)
+    else if(opt_sync_spin_lock)
     {
       while (__sync_lock_test_and_set(&lock, 1)); //spin
       //critical section
       add((long long *) counter, (long long)  1);
+      __sync_lock_release(&lock);
+    }
+    else if (opt_sync_compare_and_swap)
+    {
+      add_compare_and_swap((long long *) counter, 1);
+    }
+    else //no syncronization
+    {
+      add((long long *) counter, (long long)  1);
+    }
+
+    i++;
+  }
+
+  i=0;
+
+  /*add -1 with different synchronization options*/
+  while(i < num_iterations)
+  {
+    if(opt_sync_mutex)
+    {
+      pthread_mutex_lock(&mutex);
+      add((long long *) counter, (long long) -1);
+      pthread_mutex_unlock(&mutex);
+    }
+    else if(opt_sync_spin_lock)
+    {
+      while (__sync_lock_test_and_set(&lock, 1)); //spin
+      //critical section
       add((long long *) counter, (long long) -1);
       __sync_lock_release(&lock);
     }
-    else
+    else if (opt_sync_compare_and_swap)
     {
-      add((long long *) counter, (long long)  1);
+      add_compare_and_swap((long long *) counter,-1);
+    }
+    else //no syncronization
+    {
       add((long long *) counter, (long long) -1);
     }
 
@@ -65,8 +110,6 @@ int main(int argc, char ** argv)
 {
   static struct option long_opts[] =
   {
-    /* -takes a parameter for the number of parallel threads
-     -takes a parameter for the number of iterations*/
     {"threads",    optional_argument, NULL, 't'},
     {"iterations", optional_argument, NULL, 'i'},
     {"yield",      no_argument,       NULL, 'y'},
@@ -97,18 +140,18 @@ int main(int argc, char ** argv)
         if ( *optarg == 'm' )
           opt_sync_mutex = 1;
         else if( *optarg == 's')
-        {
           opt_sync_spin_lock = 1;
-        }
+        else if( *optarg == 'c')
+          opt_sync_compare_and_swap = 1;
         else
         {
-          fprintf(stderr, "Usage: --sync=[m]");
+          fprintf(stderr, "Usage: --sync={m,s,c}\n");
           exit(1);
         }
         break;
 
       default:
-        fprintf(stderr, "Usage: [ --threads=# --iterations=# --yield --sync=[m] ]");
+        fprintf(stderr, "Usage: [ --threads=# --iterations=# --yield --sync={m,s,c} ]\n");
         exit(1);
 
     }
@@ -120,7 +163,7 @@ int main(int argc, char ** argv)
   //notes the (high resolution) starting time for the run (using clock_gettime(3))
   struct timespec start, end;
   if(clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start) == -1)
-    perror("clock_gettime() error");
+    { perror("clock_gettime() error"); exit(1); }
 
 
     int tid=0;
@@ -128,7 +171,7 @@ int main(int argc, char ** argv)
     {
       int status = pthread_create(&threads[tid], NULL, thread_func, &counter);
       if (status)
-       perror("pthread_create() error");
+       { perror("pthread_create() error"); exit(1); }
       tid++;
     }
 
@@ -165,16 +208,18 @@ int main(int argc, char ** argv)
   {
     strcat(test_name, "-m");
   }
-  if(opt_sync_spin_lock)
+  else if(opt_sync_spin_lock)
   {
     strcat(test_name, "-s");
   }
-  if(!(opt_yield | opt_sync_mutex | opt_sync_spin_lock))
+  else if(opt_sync_compare_and_swap)
+  {
+    strcat(test_name, "-c");
+  }
+  else
   {
     strcat(test_name, "-none");
   }
-
-
 
   fprintf(stdout, "%s,%d,%d,%lld,%lld,%lld,%lld\n", test_name, num_threads, num_iterations, num_operations, time_elapsed, time_per_operation, counter);
 
