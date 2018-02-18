@@ -7,6 +7,7 @@ CFLAGS= -Wall -Wextra
 
 make:
 	$(CC) $(CFLAGS) -pthread -lrt -o lab2_add lab2_add.c
+	$(CC) $(CFLAGS) -pthread -lrt -o lab2_list -g SortedList.c lab2_list.c
 
 dist: lab2a-104812434.tar.gz
 sources = *.png lab2_add.c SortedList.h SortedList.c lab2_list.c Makefile README

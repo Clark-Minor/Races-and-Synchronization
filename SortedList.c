@@ -95,7 +95,7 @@ SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key)
     if(strcmp(curr->key, key) == 0)
       return curr;
 
-    if(opt_yield & SEARCH_YIELD)
+    if(opt_yield & LOOKUP_YIELD)
 			sched_yield();
     curr=curr->next;
   }
