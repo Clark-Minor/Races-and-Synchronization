@@ -20,7 +20,7 @@ struct SortedListElement {
 	struct SortedListElement *prev;
 	struct SortedListElement *next;
 	const char *key;
-}; 
+};
 typedef struct SortedListElement SortedList_t;
 typedef struct SortedListElement SortedListElement_t;
 
@@ -66,7 +66,7 @@ int SortedList_delete( SortedListElement_t *element);
  */
 SortedListElement_t *SortedList_lookup(SortedList_t *list, const char *key);
 
-/**
+/** 
  * SortedList_length ... count elements in a sorted list
  *	While enumeratign list, it checks all prev/next pointers
  *
