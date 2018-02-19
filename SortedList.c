@@ -23,7 +23,7 @@
 void SortedList_insert(SortedList_t *list, SortedListElement_t *element)
 {
 
-  SortedListElement_t* curr = list;
+  SortedListElement_t* curr = list->next;
   while(curr != list)
   {
     /*
@@ -34,15 +34,15 @@ void SortedList_insert(SortedList_t *list, SortedListElement_t *element)
     if(strcmp(curr->key, element->key) >= 0)
       break;
 
-    curr=curr->next;
+    curr = curr->next;
   }
 
   if(opt_yield & INSERT_YIELD)
     sched_yield();
   //insert before curr
-  element->next = curr;
-  element->prev = curr->prev;
   curr->prev->next = element;
+  element->prev = curr->prev;
+  element->next = curr;
   curr->prev = element;
 }
 
