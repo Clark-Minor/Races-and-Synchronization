@@ -34,18 +34,18 @@
 - Analyze outputted graphs (*.png) to understand the performance of multithreaded programs
 
 #### The usage for the executables lab2_add and lab2_list is as follows:
-
+```
 ./lab2_add [--threads=#] [--iterations=#] [--yield] [--sync={m,s,c}]
-
+```
 - iterations=# ... specify the number of iterations (default 1)
 - threads=# ... specify the number of threads (default 1)
 - yield ... yield in critical section of add
 - sync=m ... mutex synchronization
 - sync=s ... spin-lock synchronization
 - sync=c ... compare-and-swap synchronization
-
+```
 ./lab2_list [--threads=#] [--iterations=#] [--yield={idl}] [--sync={m,s}]
-
+```
 - iterations=# ... specify the number of iterations (default 1)
 - threads=# ... specify the number of threads (default 1)
 - yield=i ... yield in SortedList_insert
