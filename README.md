@@ -1,45 +1,39 @@
-<h1>Races and Synchronization Lab<h1>
+#Races and Synchronization Lab
 
-<h2>Overview<h2>
+###Overview:
 
 Purpose: Engage (at a low level) with a range of synchronization problems
-<ul>
-   <li>Updates to a shared variable:
-     <ul>
-	   <li>	Write a multithreaded application (using pthreads) that
-		performs parallel updates to a shared variable.</li>
-	   <li>	Demonstrate the race condition in the provided <tt>add</tt> routine,
-		and address it with different synchronization mechanisms.</li>
-	   <li> Do performance instrumentation and measurement.</li>
-     </ul>
-   </li>
-   <p></p>
-   <li>Updates to a shared complex data structure:
-      <ul>
-	   <li>	Implement the four routines described in
-	        <a href="src/SortedList.h">SortedList.h</a>:
+
+   ####Updates to a shared variable:
+     
+	   - Write a multithreaded application (using pthreads) that
+		performs parallel updates to a shared variable
+	   - Demonstrate the race condition in the provided <tt>add</tt> routine,
+		and address it with different synchronization mechanisms
+	   - Do performance instrumentation and measurement
+ 
+   ####Updates to a shared complex data structure:
+   
+	   - Implement the four routines described in <a href="src/SortedList.h">SortedList.h</a>:
 		<tt>SortedList_insert, SortedList_delete,
-		    SortedList_lookup, SortedList_length</tt>.
-	   </li>
-	   <li> Write a multi-threaded application, using pthread that performs,
-		parallel updates to a sorted doubly linked list data structure</li>
-	   <li>	Recognize and demonstrate the race conditions when performing
+		    SortedList_lookup, SortedList_length</tt>
+	   - Write a multi-threaded application, using pthread that performs,
+		parallel updates to a sorted doubly linked list data structure
+	   - Recognize and demonstrate the race conditions when performing
 		linked list operations, and address them with different
-		synchronization mechanisms.</li>
-	   <li>Do performance instrumentation and measurement.</li>
+		synchronization mechanisms
+	   - Do performance instrumentation and measurement
 
-<h2>Usage<h2>
+###Usage:
 
-<ul>
-<li>Clone or download this repository</li>
-<li><tt>make</tt> to build the executables</li>
-<li><tt>make add_tests</tt> to get data for synchronization with a shared variable</li>
-<li><tt>make list_tests</tt> to get data for synchronization with a shared complex data structure</li>
-<li><tt>make graphs</tt> to graph collected data</li>
-<li>Analyze outputted graphs (*.png) to understand the performance of multithreaded programs</li>
-</ul>
+	- Clone or download this repository
+	- <tt>make</tt> to build the executables
+	- <tt>make add_tests</tt> to get data for synchronization with a shared variable
+	- <tt>make list_tests</tt> to get data for synchronization with a shared complex data structure
+	- <tt>make graphs</tt> to graph collected data
+	- Analyze outputted graphs (*.png) to understand the performance of multithreaded programs
 
-The usage for the executables lab2_add and lab2_list are as follows:
+#####The usage for the executables lab2_add and lab2_list are as follows:
 
 ./lab2_add [--threads=#] [--iterations=#] [--yield] [--sync={m,s,c}]
 
