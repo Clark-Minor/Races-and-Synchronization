@@ -58,4 +58,4 @@ yield=i ... yield in SortedList_insert
 yield=d ... yield in SortedList_delete
 yield=l ... yield in SortedList_lookup and SortedList_length
 sync=m ... mutex synchronization
-sync=s ... spin-lock synchronization 
+sync=s ... spin-lock synchronization
