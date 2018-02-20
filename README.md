@@ -33,7 +33,7 @@
 - `make graphs` to graph collected data
 - Analyze outputted graphs (*.png) to understand the performance of multithreaded programs
 
-#### The usage for the executables lab2_add and lab2_list are as follows:
+#### The usage for the executables lab2_add and lab2_list is as follows:
 
 ./lab2_add [--threads=#] [--iterations=#] [--yield] [--sync={m,s,c}]
 
