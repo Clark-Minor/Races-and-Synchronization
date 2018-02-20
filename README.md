@@ -14,8 +14,8 @@
 #### Updates to a shared complex data structure:
    
 - Implement the four routines described in <a href="src/SortedList.h">SortedList.h</a>:
-		`SortedList_insert, SortedList_delete,
-		    SortedList_lookup, SortedList_length`
+		`SortedList_insert`, `SortedList_delete`,
+		    `SortedList_lookup`, `SortedList_length`
 - Write a multi-threaded application, (using pthreads) that performs,
 		parallel updates to a sorted doubly linked list data structure
 - Recognize and demonstrate the race conditions when performing
@@ -26,7 +26,8 @@
 ### Usage:
 
 - Clone or download this repository
-- 'make' to build the executables
+- `cd src`
+- `make` to build the executables
 - `make add_tests` to get data for synchronization with a shared variable
 - `make list_tests` to get data for synchronization with a shared complex data structure
 - `make graphs` to graph collected data
