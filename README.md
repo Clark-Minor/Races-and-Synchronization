@@ -23,7 +23,7 @@
 		synchronization mechanisms
 - Do performance instrumentation and measurement
 
-### Usage:
+## Usage:
 
 - Clone or download this repository
 - `cd src`
