@@ -13,9 +13,17 @@ int num_iterations = 1;
 int opt_yield = 0;
 int opt_sync_mutex = 0;
 int opt_sync_spin_lock = 0;
-//static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+volatile int lock = 0;
 SortedListElement_t* elements;
 SortedList_t* list;
+
+void handler(int num){
+  if(num == SIGSEGV){
+    perror("Caught Segfault");
+    exit(2);
+  }
+}
 
 void set_yield_args(char* args)
 {
@@ -42,6 +50,7 @@ void set_yield_args(char* args)
   }
 }
 
+
 void rand_str(char *dest, size_t length) {
     char charset[] = "abcdefghijklmnopqrstuvwxyz"
                      "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -59,21 +68,114 @@ void* thread_func(void* offset)
 {
   int i;
   SortedListElement_t *start = offset;
-  //printf("%d\n",offset);
+
+  //Insertion Loop
   for(i = 0; i < num_iterations; i++)
   {
-    printf("%d\n",i);
-    printf("Should be: %s\n",elements[i].key);
-    SortedList_insert(list, start + i);
-    printf("Inserted: %s\n",(start + i)->key);
+    if(opt_sync_mutex)
+    {
+      //printf("hanging1\n");
+      pthread_mutex_lock(&mutex);
+      //printf("hanging2\n");
+      SortedList_insert(list, start + i);
+      //printf("%s\n", (start+i)->key);
+      pthread_mutex_unlock(&mutex);
+    }
+    else if(opt_sync_spin_lock)
+    {
+      while (__sync_lock_test_and_set(&lock, 1)); //spin
+      //critical section
+      SortedList_insert(list, start + i);
+      __sync_lock_release(&lock);
+    }
+    else
+    {
+      SortedList_insert(list, start + i);
+    }
   }
 
-
-  SortedListElement_t* curr = list->next;
-  while(curr!= list)
+//Length Loop
+for(i = 0; i < num_iterations; i++)
+{
+  if(opt_sync_mutex)
   {
-    printf("%s,", curr->key);
-    curr=curr->next;
+    //printf("hanging1\n");
+    pthread_mutex_lock(&mutex);
+    int len = SortedList_length(list);
+    if(len == -1)
+    {
+      fprintf(stderr, "List length incorrect\n" );
+      exit(2);
+    }
+    pthread_mutex_unlock(&mutex);
+  }
+  else if(opt_sync_spin_lock)
+  {
+    while (__sync_lock_test_and_set(&lock, 1)); //spin
+    int len = SortedList_length(list);
+    if(len == -1)
+    {
+      fprintf(stderr, "List length incorrect\n" );
+      exit(2);
+    }
+    __sync_lock_release(&lock);
+  }
+  else
+  {
+    int len = SortedList_length(list);
+    if(len == -1)
+    {
+      fprintf(stderr, "List length incorrect\n" );
+      exit(2);
+    }
+  }
+}
+
+  //Deletion Loop
+  for(i = 0; i < num_iterations; i++)
+  {
+    if(opt_sync_mutex)
+    {
+      pthread_mutex_lock(&mutex);//=======LOCK
+      SortedListElement_t *found = SortedList_lookup(list, start[i].key);
+      if(found == NULL)
+      {
+        fprintf(stderr, "Error finding in list");
+        exit(2);
+      }
+      else
+      {
+        SortedList_delete(found);
+      }
+      pthread_mutex_unlock(&mutex);//=====UNLOCK
+    }
+
+    else if(opt_sync_spin_lock)
+    {
+      while (__sync_lock_test_and_set(&lock, 1));//=======LOCK
+      SortedListElement_t *found = SortedList_lookup(list, start[i].key);
+      if(found == NULL)
+      {
+        fprintf(stderr, "Error finding in list");
+        exit(2);
+      }
+      else
+      {
+        SortedList_delete(found);
+      }
+      __sync_lock_release(&lock);//=====UNLOCK
+    }
+    else
+    {
+      SortedListElement_t *found = SortedList_lookup(list, start[i].key);
+      if(found == NULL)
+      {
+        fprintf(stderr, "Error finding in list");
+        exit(2);
+      }
+      else
+        SortedList_delete(found);
+    }
   }
   return NULL;
 }
@@ -149,26 +251,23 @@ int main(int argc, char ** argv)
       rand_str(str, sizeof(str) - 1);
       //printf("%s\n",str);
       elements[i].key = str;
-      printf("Element #%i %s\n", i, elements[i].key);
+      //printf("Element #%i %s\n", i, elements[i].key);
     }
 
     pthread_t* threads = malloc(sizeof(pthread_t) * num_threads);
 
-
+    signal(SIGSEGV, handler);
     //START LIST OPERATIONS
     struct timespec start, end;
     if(clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start) == -1)
       { perror("clock_gettime() error"); exit(1); }
 
-      for(i=0; i < num_list_elements; i++)
-      {
-        printf("Element -- #%i %s\n", i, elements[i].key);
-      }
+
       int tid=0;
       while(tid < num_threads)
       {
         //int offset = tid * num_iterations;
-        int status = pthread_create(threads + tid, NULL, thread_func, elements);
+        int status = pthread_create(threads + tid, NULL, thread_func, elements + tid * num_iterations);
         if (status)
          { perror("pthread_create() error"); exit(1); }
 
@@ -178,17 +277,27 @@ int main(int argc, char ** argv)
       tid=0;
       while(tid < num_threads)
       {
-          fprintf(stderr, "join loop reached\n");
-          int status = pthread_join(threads[tid], NULL);
+          //fprintf(stderr, "join loop reached\n");
+          int status = pthread_join(*(threads +tid), NULL);
+          //fprintf(stderr, "hanging in join\n");
           if (status)
            { perror("pthread_join() error"); exit(1); }
-          tid++;
+
+
+        tid++;
       }
 
     if(clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &end) == -1)
          { perror("clock_gettime() error"); exit(1); }
 
     //END LIST OPERATIONS
+    long long time_elapsed = (end.tv_sec - start.tv_sec) * 1000000000L + (end.tv_nsec - start.tv_nsec);
+
+    if(SortedList_length(list) != 0)
+    {
+      fprintf(stderr, "List length error");
+      exit(2);
+    }
 
     free(elements);
     free(list);
@@ -225,8 +334,13 @@ int main(int argc, char ** argv)
       {
         strcat(test_name, "-none");
       }
+      //printf("something\n");
+      long long num_operations = num_iterations * num_threads * 3;
 
-      fprintf(stdout, "%s\n", test_name);
+      long long time_per_operation = time_elapsed / num_operations;
+      long long num_lists= (long long) 1;
+
+      printf("%s,%d,%d,%lld,%lld,%lld,%lld\n", test_name, num_threads, num_iterations, num_lists, num_operations, time_elapsed, time_per_operation);
 
       return 0;
 

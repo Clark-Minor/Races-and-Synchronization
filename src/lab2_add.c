@@ -1,7 +1,3 @@
-//NAME: Clark Minor
-//EMAIL: clarkminor@ucla.edu
-//ID: 104812434
-
 #include <getopt.h> //getopt_long()
 #include <pthread.h> //pthread_create(), pthread_join()
 #include <stdio.h> //fprintf(), perror()
